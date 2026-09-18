@@ -1,0 +1,48 @@
+{
+  "_comment_1": "放在 .claude/settings.json。這個檔通常不進版控（.gitignore 多半擋掉 .claude/*）",
+  "_comment_2": "⇒ 換機器要重接。所以請把安裝動作寫成版控裡的腳本 tools/install_hooks.py",
+  "_comment_3": "路徑必須是絕對路徑，而且用正斜線（Windows 也是）。以下把 <REPO> 換成你的 repo 絕對路徑。",
+  "_comment_4": "timeout 單位是秒。給得太短，hook 會在大檔案上安靜逾時 —— 那等於規則沒生效。",
+
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "<REPO>/.venv/Scripts/python.exe <REPO>/tools/hooks/pre_bash.py",
+            "timeout": 45,
+            "statusMessage": "指令樣式檢查"
+          }
+        ]
+      }
+    ],
+
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "<REPO>/.venv/Scripts/python.exe <REPO>/tools/hooks/post_edit.py",
+            "timeout": 90,
+            "statusMessage": "改檔後檢查"
+          }
+        ]
+      }
+    ],
+
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "<REPO>/.venv/Scripts/python.exe <REPO>/tools/hooks/daily_brief.py",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}
