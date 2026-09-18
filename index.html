@@ -1,0 +1,552 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>一個人 × AI：專案管理系統</title>
+<meta name="description" content="三層記憶 × 四層防線 —— 一套在真實單人專案上跑了數個月的 AI 協作工作流程，含可直接複製的模板與 prompt。">
+<!--
+  這一頁是本資料夾的導覽圖，不是第七章。
+  · 內容以「這個資料夾長什麼樣、從哪裡開始讀」為主，正文全在 *.md 裡。
+  · 單檔可開（file:// 直接雙擊），無 build step、無框架。
+  · 字型走 Google Fonts CDN；離線開啟時退回系統字型，版面不受影響。
+  🚨 改了這一頁的數字，要同步改 README.md —— 兩份會漂移。
+-->
+<style>
+  html{color-scheme:light dark}
+  body{margin:0}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;700&display=swap">
+
+<style>
+  :root{
+    --paper:#EDEFF0; --surface:#F9FAFA; --sunk:#E3E7E9;
+    --ink:#14191C; --ink-2:#54626A; --ink-3:#7C8890;
+    --rule:#CDD5D9; --rule-soft:#DEE4E7;
+    --accent:#17505F; --accent-soft:#DCE8EC;
+    --pass:#2C6E49; --fail:#A13232; --caution:#8E5A0C;
+    --pass-soft:#DDEAE1; --fail-soft:#F1DEDD; --caution-soft:#F0E5D2;
+    --sans:"Noto Sans TC","Segoe UI",system-ui,sans-serif;
+    --serif:"Noto Serif TC",Georgia,"Times New Roman",serif;
+    --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#0F1519; --surface:#161E23; --sunk:#1C262C;
+      --ink:#E7EEF1; --ink-2:#9AAAB2; --ink-3:#7A8993;
+      --rule:#26333A; --rule-soft:#1F2B31;
+      --accent:#74B7CB; --accent-soft:#17303A;
+      --pass:#63BE90; --fail:#E5807A; --caution:#DCA954;
+      --pass-soft:#152A20; --fail-soft:#2C1A19; --caution-soft:#2A2113;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0F1519; --surface:#161E23; --sunk:#1C262C;
+    --ink:#E7EEF1; --ink-2:#9AAAB2; --ink-3:#7A8993;
+    --rule:#26333A; --rule-soft:#1F2B31;
+    --accent:#74B7CB; --accent-soft:#17303A;
+    --pass:#63BE90; --fail:#E5807A; --caution:#DCA954;
+    --pass-soft:#152A20; --fail-soft:#2C1A19; --caution-soft:#2A2113;
+  }
+
+  *{box-sizing:border-box}
+  body{background:var(--paper);color:var(--ink);font-family:var(--sans);
+       font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+  .page{max-width:1080px;margin:0 auto;padding:56px 24px 96px;
+        display:flex;flex-direction:column;gap:56px}
+  h1,h2,h3{font-family:var(--serif);font-weight:700;text-wrap:balance;line-height:1.35;margin:0}
+  h1{font-size:clamp(30px,5.2vw,46px);letter-spacing:.01em}
+  h2{font-size:clamp(21px,2.8vw,27px)}
+  h3{font-size:17px;font-family:var(--sans);font-weight:700}
+  p{margin:0}
+  a{color:var(--accent)}
+  code,.mono{font-family:var(--mono);font-size:.88em;font-variant-ligatures:none}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;
+           text-transform:uppercase;color:var(--ink-3)}
+
+  /* 🚨 文字段落一律滿寬，與表格／卡片同寬 —— 不設 max-width 行長限制。 */
+  .hd{display:flex;flex-direction:column;gap:18px}
+  .hd .lede{font-size:clamp(17px,2.1vw,20px);line-height:1.7;color:var(--ink-2)}
+  .hd .lede b{color:var(--ink)}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;font-family:var(--mono);font-size:12px}
+  .meta span{border:1px solid var(--rule);border-radius:2px;padding:3px 9px;color:var(--ink-2)}
+
+  section{display:flex;flex-direction:column;gap:22px}
+  .sec-hd{display:flex;flex-direction:column;gap:8px}
+  .sec-hd p{color:var(--ink-2)}
+
+  /* ── 圖 ── */
+  figure{margin:0;display:flex;flex-direction:column;gap:14px}
+  .figwrap{overflow-x:auto;background:var(--surface);border:1px solid var(--rule);
+           border-radius:3px;padding:22px 20px}
+  svg.dia{display:block;min-width:760px;width:100%;height:auto}
+  .dia .box{fill:var(--sunk);stroke:var(--rule);stroke-width:1.2}
+  .dia .mem{fill:var(--accent-soft);stroke:var(--rule);stroke-width:1.2}
+  .dia .chip{fill:var(--surface);stroke:var(--rule-soft);stroke-width:1.2}
+  .dia .flow{stroke:var(--ink-2);stroke-width:1.6;fill:none}
+  .dia .flow-red{stroke:var(--fail);stroke-width:1.6;fill:none;stroke-dasharray:5 4}
+  .dia .flow-acc{stroke:var(--accent);stroke-width:1.6;fill:none;stroke-dasharray:5 4}
+  .dia .n{fill:var(--accent);font-family:var(--mono);font-size:13px;font-weight:600}
+  .dia .t{fill:var(--ink);font-family:var(--sans);font-size:16px;font-weight:700}
+  .dia .s{fill:var(--ink-2);font-family:var(--sans);font-size:12.5px}
+  .dia .al{fill:var(--ink-2);font-family:var(--mono);font-size:12px}
+  .dia .rl{fill:var(--fail);font-family:var(--mono);font-size:11.5px}
+  .dia .acl{fill:var(--accent);font-family:var(--mono);font-size:11.5px}
+  .dia .gl{fill:var(--ink);font-family:var(--sans);font-size:12.5px;font-weight:500}
+  .dia .gn{fill:var(--accent);font-family:var(--mono);font-size:11px;font-weight:600}
+  .dia .lbl{fill:var(--ink-3);font-family:var(--mono);font-size:11px;letter-spacing:.12em}
+  .dia .arrow{fill:var(--ink-2)}
+  .dia .arrow-red{fill:var(--fail)}
+  .dia .arrow-acc{fill:var(--accent)}
+  figcaption{color:var(--ink-2);font-size:14px}
+
+  /* ── 資料夾地圖 ── */
+  .map{display:flex;flex-direction:column;gap:16px}
+  .grp{background:var(--surface);border:1px solid var(--rule);border-radius:3px;
+       display:grid;grid-template-columns:54px 1fr;overflow:hidden}
+  .grp-rail{background:var(--accent-soft);border-right:1px solid var(--rule);
+            display:flex;align-items:center;justify-content:center;padding:12px 0}
+  .grp-rail span{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent);
+                 writing-mode:vertical-rl;letter-spacing:.2em;white-space:nowrap}
+  .grp-body{padding:18px 20px;display:flex;flex-direction:column;gap:12px}
+  .grp-body > p{font-size:14.5px;color:var(--ink-2)}
+  .files{display:flex;flex-direction:column;gap:7px;margin:0;padding:0;list-style:none}
+  .files li{display:grid;grid-template-columns:minmax(0,21ch) 1fr;gap:6px 18px;
+            align-items:baseline;font-size:14.5px;line-height:1.6;color:var(--ink-2);
+            padding-bottom:7px;border-bottom:1px solid var(--rule-soft)}
+  .files li:last-child{border-bottom:none;padding-bottom:0}
+  .files .fn{font-family:var(--mono);font-size:12.5px;color:var(--accent);
+             overflow-wrap:anywhere}
+  .files b{color:var(--ink)}
+
+  /* ── 表 ── */
+  .tblwrap{overflow-x:auto;border:1px solid var(--rule);border-radius:3px;background:var(--surface)}
+  table{border-collapse:collapse;width:100%;min-width:640px;font-size:14.5px}
+  caption{caption-side:bottom;text-align:left;padding:12px 16px;color:var(--ink-2);font-size:13.5px}
+  th,td{padding:11px 16px;text-align:left;border-bottom:1px solid var(--rule-soft);vertical-align:top}
+  thead th{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
+           color:var(--ink-3);font-weight:400;background:var(--sunk);white-space:nowrap}
+  tbody tr:last-child td{border-bottom:none}
+  td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+  td.layer{font-weight:700;white-space:nowrap}
+  .tag{display:inline-block;font-family:var(--mono);font-size:11px;padding:1px 7px;
+       border-radius:2px;white-space:nowrap}
+  .tag.no{background:var(--pass-soft);color:var(--pass)}
+  .tag.yes{background:var(--fail-soft);color:var(--fail)}
+  .tag.mid{background:var(--caution-soft);color:var(--caution)}
+
+  /* ── 分流 ── */
+  .triage{display:grid;grid-template-columns:repeat(auto-fit,minmax(236px,1fr));gap:14px}
+  .tri{background:var(--surface);border:1px solid var(--rule);border-radius:3px;
+       padding:18px;display:flex;flex-direction:column;gap:8px}
+  .tri .k{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;color:var(--accent)}
+  .tri .q{font-size:15px;font-weight:700;line-height:1.5}
+  .tri .d{font-size:14px;line-height:1.65;color:var(--ink-2)}
+  .tri .f{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);
+          border-top:1px solid var(--rule-soft);padding-top:9px;margin-top:auto}
+
+  /* ── 時間軸 ── */
+  .rail{display:flex;flex-direction:column;gap:0}
+  .step{display:grid;grid-template-columns:minmax(0,13ch) 1fr;gap:12px 24px;
+        border-top:1px solid var(--rule);padding:18px 0;align-items:start}
+  .step:last-child{border-bottom:1px solid var(--rule)}
+  .step .when{font-family:var(--mono);font-size:12.5px;color:var(--accent);font-weight:600}
+  .step .what{font-size:15px;line-height:1.75;color:var(--ink-2)}
+  .step .what b{color:var(--ink)}
+
+  .note{font-size:14.5px;line-height:1.7;border-left:2px solid var(--caution);
+        background:var(--caution-soft);padding:11px 15px;border-radius:0 2px 2px 0;
+        color:var(--ink)}
+  .note b{color:var(--caution)}
+
+  .bounds{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+  .bounds li{display:grid;grid-template-columns:auto 1fr;gap:12px;font-size:15px;
+             line-height:1.7;color:var(--ink-2);background:var(--surface);
+             border:1px solid var(--rule);border-left:2px solid var(--caution);
+             border-radius:0 3px 3px 0;padding:13px 16px}
+  .bounds li b{color:var(--ink)}
+  .bounds .mk{font-family:var(--mono);font-size:12px;color:var(--caution);padding-top:3px}
+
+  footer{border-top:1px solid var(--rule);padding-top:20px;color:var(--ink-3);font-size:13px;
+         display:flex;flex-direction:column;gap:6px}
+
+  @media (max-width:640px){
+    .page{padding:40px 16px 72px;gap:44px}
+    .grp{grid-template-columns:42px 1fr}
+    .grp-body{padding:15px 14px}
+    .files li{grid-template-columns:1fr}
+    .step{grid-template-columns:1fr;gap:6px}
+  }
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="page">
+
+  <header class="hd">
+    <p class="eyebrow">資料夾導覽 · 三層記憶 × 四層防線</p>
+    <h1>一個人 × AI：<br>一套會自己擋下錯誤的專案管理系統</h1>
+    <p class="lede">分工不是「AI負責寫、我負責看」，是<b>AI產出、我設閘門與決策，閘門的正確歸宿不是文件裡的一條規則 —— 是一支會擋下來的機器檢查</b>。</p>
+    <div class="meta">
+      <span>7 章正文</span><span>13 份 templates</span><span>6 段 prompts</span>
+      <span>單人開發</span><span>無框架・無 build step</span>
+    </div>
+  </header>
+
+  <!-- ══ 全景圖 ══ -->
+  <section>
+    <div class="sec-hd">
+      <p class="eyebrow">01 — 全景</p>
+      <h2>兩個部分：AI 讀到什麼，以及誰來證明它是對的</h2>
+      <p>上半是<b>三層記憶</b>（解決「agent 每次開新對話就失憶」），
+        下半是<b>三個迴圈與四層防線</b>（解決「它產出之後，誰來證明那是對的」）。
+        兩者由第三個迴圈接起來：每一次事故的產出，是記憶層裡多出來的一條規則、或多出來的一支機器檢查。</p>
+    </div>
+
+    <figure>
+      <div class="figwrap">
+        <svg class="dia" viewBox="0 0 880 470" role="img"
+             aria-label="架構圖。上排是三層記憶：規則層每次對話全文載入、記憶層跨專案、任務層按需讀，三者一起餵進下方流程。中排是三個迴圈：決策由人定案估時，交給實作由 AI 產出，出事後進入教訓迴圈。實作迴圈底下掛四道閘門：L1 hook 在指令送出前擋、L2 守衛在提交前擋並附覆蓋率、L3 演練證明守衛會紅、L4 端到端打真環境；任一道紅燈就退回實作。教訓迴圈的產出是一條新規則或新守衛，寫回三層記憶。">
+          <defs>
+            <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path class="arrow" d="M 0 0 L 10 5 L 0 10 z"></path>
+            </marker>
+            <marker id="arR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path class="arrow-red" d="M 0 0 L 10 5 L 0 10 z"></path>
+            </marker>
+            <marker id="arA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path class="arrow-acc" d="M 0 0 L 10 5 L 0 10 z"></path>
+            </marker>
+          </defs>
+
+          <!-- 三層記憶 -->
+          <text class="lbl" x="28" y="18">三層記憶 — AI 每次開新對話讀到的東西</text>
+
+          <rect class="mem" x="28" y="30" width="256" height="88" rx="3"></rect>
+          <text class="t" x="46" y="57">規則層</text>
+          <text class="s" x="46" y="79">判準・規則・索引</text>
+          <text class="s" x="46" y="99">每次對話全文載入 ⇒ 最貴</text>
+
+          <rect class="mem" x="312" y="30" width="256" height="88" rx="3"></rect>
+          <text class="t" x="330" y="57">記憶層</text>
+          <text class="s" x="330" y="79">我是誰・拍板・否決</text>
+          <text class="s" x="330" y="99">跟著人走，跨專案</text>
+
+          <rect class="mem" x="596" y="30" width="256" height="88" rx="3"></rect>
+          <text class="t" x="614" y="57">任務層</text>
+          <text class="s" x="614" y="79">排程・日誌・證據・手冊</text>
+          <text class="s" x="614" y="99">一檔只答一個問題</text>
+
+          <path class="flow" d="M 156 118 V 134"></path>
+          <path class="flow" d="M 440 118 V 134"></path>
+          <path class="flow" d="M 724 118 V 134"></path>
+          <path class="flow" d="M 156 134 H 724"></path>
+          <path class="flow" d="M 150 134 V 146" marker-end="url(#ar)"></path>
+
+          <!-- 三個迴圈 -->
+          <rect class="box" x="28" y="152" width="244" height="104" rx="3"></rect>
+          <text class="n" x="46" y="178">①</text>
+          <text class="t" x="46" y="204">決策</text>
+          <text class="s" x="46" y="226">我定義問題、選路、</text>
+          <text class="s" x="46" y="245">承擔後果</text>
+
+          <rect class="box" x="318" y="152" width="244" height="104" rx="3"></rect>
+          <text class="n" x="336" y="178">②</text>
+          <text class="t" x="336" y="204">實作</text>
+          <text class="s" x="336" y="226">AI 產出，</text>
+          <text class="s" x="336" y="245">我設閘門</text>
+
+          <rect class="box" x="608" y="152" width="244" height="104" rx="3"></rect>
+          <text class="n" x="626" y="178">③</text>
+          <text class="t" x="626" y="204">教訓</text>
+          <text class="s" x="626" y="226">把一次痛，</text>
+          <text class="s" x="626" y="245">變成永久攔截</text>
+
+          <path class="flow" d="M 276 204 H 310" marker-end="url(#ar)"></path>
+          <text class="al" x="293" y="192" text-anchor="middle">定案</text>
+
+          <path class="flow" d="M 566 204 H 600" marker-end="url(#ar)"></path>
+          <text class="al" x="583" y="192" text-anchor="middle">出事</text>
+
+          <!-- 教訓回饋到記憶層 -->
+          <path class="flow-acc" d="M 730 150 V 124" marker-end="url(#arA)"></path>
+          <text class="acl" x="740" y="142">產出＝新規則／新守衛</text>
+
+          <!-- 四層防線 -->
+          <path class="flow" d="M 440 256 V 278" marker-end="url(#ar)"></path>
+
+          <rect class="chip" x="300" y="284" width="280" height="28" rx="2"></rect>
+          <text class="gn" x="314" y="303">L1</text>
+          <text class="gl" x="342" y="303">hook — 指令送出前就擋</text>
+
+          <rect class="chip" x="300" y="318" width="280" height="28" rx="2"></rect>
+          <text class="gn" x="314" y="337">L2</text>
+          <text class="gl" x="342" y="337">守衛 — 提交前，附覆蓋率</text>
+
+          <rect class="chip" x="300" y="352" width="280" height="28" rx="2"></rect>
+          <text class="gn" x="314" y="371">L3</text>
+          <text class="gl" x="342" y="371">演練 — 證明守衛真的會紅</text>
+
+          <rect class="chip" x="300" y="386" width="280" height="28" rx="2"></rect>
+          <text class="gn" x="314" y="405">L4</text>
+          <text class="gl" x="342" y="405">端到端 — 打真的環境</text>
+
+          <path class="flow" d="M 440 312 V 316"></path>
+          <path class="flow" d="M 440 346 V 350"></path>
+          <path class="flow" d="M 440 380 V 384"></path>
+
+          <path class="flow-red" d="M 440 414 V 436 H 596 V 198 H 572" marker-end="url(#arR)"></path>
+          <text class="rl" x="428" y="432" text-anchor="end">任一格紅 ⇒ 退回②，不算做完</text>
+        </svg>
+      </div>
+      <figcaption>
+        四道閘門掛在②底下，任何一道紅燈都把工作推回②。
+        ③不是事後檢討會 —— 它的產出是三層記憶裡多出來的一條規則、或多出來的一支機器檢查，
+        <b>所以同一型錯誤只會花你一次</b>。
+      </figcaption>
+    </figure>
+  </section>
+
+  <!-- ══ 資料夾地圖 ══ -->
+  <section>
+    <div class="sec-hd">
+      <p class="eyebrow">02 — 這個資料夾長什麼樣</p>
+      <h2>28 個檔，分三組</h2>
+      <p>正文回答「為什麼這樣設計」，<code>templates/</code> 給你可直接複製的骨架，
+        <code>prompts/</code> 給你可直接貼的指令。<b>只有 30 分鐘的話</b>：讀
+        <a href="README.md">README</a> 的〈三個核心概念〉→ 跳到 <a href="07-adopt.md">07</a> 的「第 1 天」。</p>
+    </div>
+
+    <div class="map">
+
+      <div class="grp">
+        <div class="grp-rail"><span>正文 · 7</span></div>
+        <div class="grp-body">
+          <p>依序讀。每一章都可以單獨讀懂，但 01 先讀比較省力。</p>
+          <ul class="files">
+            <li><a class="fn" href="README.md">README.md</a><span>入口：它在解決什麼問題、<b>三個核心概念</b>、誠實邊界</span></li>
+            <li><a class="fn" href="01-overview.md">01-overview.md</a><span>全貌：三層記憶 × 四層防線怎麼咬合，一次完整循環的細節圖</span></li>
+            <li><a class="fn" href="02-rules-file.md">02-rules-file.md</a><span>規則層：規則檔怎麼寫、什麼該進什麼不該進、<b>怎麼瘦身</b></span></li>
+            <li><a class="fn" href="03-memory.md">03-memory.md</a><span>記憶層：五分類，與<b>為什麼一定要有「作廢紀錄」</b></span></li>
+            <li><a class="fn" href="04-task-files.md">04-task-files.md</a><span>任務層：一檔只答一個問題，與「交付當下就登記」</span></li>
+            <li><a class="fn" href="05-guards.md">05-guards.md</a><span>四層防線：含<b>〈綠燈的可信度〉十條判準</b>（價值密度最高的一章）</span></li>
+            <li><a class="fn" href="06-daily-loop.md">06-daily-loop.md</a><span>日常循環：從一句需求到交付登記，每步標出誰做、產出落在哪</span></li>
+            <li><a class="fn" href="07-adopt.md">07-adopt.md</a><span>怎麼採用：第 1 天 30 分鐘 / 第 1 週 / 第 1 個月，含常見問題</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grp">
+        <div class="grp-rail"><span>templates · 13</span></div>
+        <div class="grp-body">
+          <p>精簡到能立刻用的版本。角括號 <code>&lt;...&gt;</code> 是要你填的地方。</p>
+          <ul class="files">
+            <li><a class="fn" href="templates/CLAUDE.md">CLAUDE.md</a><span>規則檔骨架，含體例說明與分流表</span></li>
+            <li><a class="fn" href="templates/MEMORY.md">MEMORY.md</a><span>記憶索引 ＋ 五類記憶各一則範例（含 <b>obsolete 作廢紀錄</b>）</span></li>
+            <li><a class="fn" href="templates/work.txt">work.txt</a><span>排程表：兩張索引 ＋ 技術債 ＋ 決策紀錄，<b>一列一行</b></span></li>
+            <li><a class="fn" href="templates/journal.txt">journal.txt</a><span>日誌（append-only，按季凍結），附一則真實形狀的範例</span></li>
+            <li><a class="fn" href="templates/evidence.txt">evidence.txt</a><span>證據帳本：<b>每列都要有實測數字</b>，附三個不合格的反例</span></li>
+            <li><a class="fn" href="templates/POSTMORTEMS.md">POSTMORTEMS.md</a><span>事故記錄，含三則完整範例（機器接住的／接不住的／規則失效的）</span></li>
+            <li><a class="fn" href="templates/settings.json">settings.json</a><span>hook 掛載設定（三個事件），含 timeout 與路徑注意事項</span></li>
+            <li><a class="fn" href="templates/hook_pre_bash.py">hook_pre_bash.py</a><span>指令送出前攔截，五條真實規則 ＋ <b>每條都附反向案例</b></span></li>
+            <li><a class="fn" href="templates/hook_post_edit.py">hook_post_edit.py</a><span>檔案寫入後檢查，含 <b>block 與 note 的分界</b></span></li>
+            <li><a class="fn" href="templates/guard_example.py">guard_example.py</a><span>守衛骨架，<b>PASS 必須印覆蓋率數字</b>；前置條件不滿足＝FAIL</span></li>
+            <li><a class="fn" href="templates/guard_drill_example.py">guard_drill_example.py</a><span>故障演練：注入 → 確認會紅 → try/finally 還原 → <b>逐位元組比對</b></span></li>
+            <li><a class="fn" href="templates/SKILL.md">SKILL.md</a><span>把交付閘門包成一個可呼叫的 skill</span></li>
+            <li><a class="fn" href="templates/README.md">README.md</a><span>建議的落地順序（不要一天裝完）</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="grp">
+        <div class="grp-rail"><span>prompts · 6</span></div>
+        <div class="grp-body">
+          <p>整段複製就能用。<b>只做得了一件的話，做 03。</b></p>
+          <ul class="files">
+            <li><a class="fn" href="prompts/01-session-start.md">01-session-start</a><span>對話開場先報現況 —— 防「AI 拿幾小時前的快照當現在」</span></li>
+            <li><a class="fn" href="prompts/02-before-implementing.md">02-before-implementing</a><span>實作前強制查詢，<b>而且要把查詢結果印出來</b></span></li>
+            <li><a class="fn" href="prompts/03-plan-not-code.md">03-plan-not-code</a><span><b>要計畫，不要 code</b> —— 投報率最高，今天就能用</span></li>
+            <li><a class="fn" href="prompts/04-postmortem-to-guard.md">04-postmortem-to-guard</a><span>事故轉守衛 —— 這一條產生複利</span></li>
+            <li><a class="fn" href="prompts/05-delivery-registration.md">05-delivery-registration</a><span>交付登記：沒寫進檔案的進度＝不存在的進度</span></li>
+            <li><a class="fn" href="prompts/06-rules-file-diet.md">06-rules-file-diet</a><span>規則檔瘦身（每月一次）</span></li>
+            <li><a class="fn" href="prompts/README.md">README.md</a><span>投報率排序，與「哪兩段適合常駐、其餘當下貼」</span></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══ 成本結構 ══ -->
+  <section>
+    <div class="sec-hd">
+      <p class="eyebrow">03 — 為什麼規則要往下推</p>
+      <h2>整套系統唯一真正反直覺的地方</h2>
+      <p>直覺會說「規則寫清楚一點就好了」。但規則正文是<b>每一次對話都要付的成本</b>，
+        而且它擋不住復發。</p>
+    </div>
+
+    <div class="tblwrap">
+      <table>
+        <caption>結論：<b>貴的是正文，不是守衛。</b>
+          在那個專案裡，規則正文從 555 行降到 341 行 ——
+          降下來的那 214 行不是被刪掉，是被推去 hook 和守衛了。</caption>
+        <thead>
+          <tr><th>層</th><th>誰執行</th><th>每次對話的成本</th><th>忘得掉嗎</th><th>所以它該放什麼</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="layer">hook</td><td>執行環境</td>
+            <td class="num"><b>0</b>（不觸發等於不存在）</td>
+            <td><span class="tag no">不會</span></td>
+            <td>指令樣式、檔案事件、時間</td>
+          </tr>
+          <tr>
+            <td class="layer">守衛腳本</td><td>我，提交前</td>
+            <td class="num">1 行（原始碼不進上下文）</td>
+            <td><span class="tag mid">會忘記跑</span></td>
+            <td>「做完了也不會知道出錯」的事</td>
+          </tr>
+          <tr>
+            <td class="layer">規則正文</td><td>AI，每次被動載入</td>
+            <td class="num"><b>行數 × 每一次對話</b></td>
+            <td><span class="tag yes">非常容易</span></td>
+            <td>只有機器接不住、必須靠判斷的</td>
+          </tr>
+          <tr>
+            <td class="layer">事故記錄</td><td>需要時才讀</td>
+            <td class="num">0</td><td>—</td>
+            <td>症狀、結構性根因、現在誰接住它</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="note"><b>可指認的反證：</b>某條規則白紙黑字寫在規則檔裡，還是<b>連續發作三次</b>。
+      三次都不是不知道規則 —— <b>自動載入 ≠ 自動遵守</b>。一條規則躺在 700 行裡，注意力份額趨近於零。
+      ⇒ 判準：<b>同一條規則被違反第二次，就不要再改規則的寫法了，去問「機器怎麼接住它」。</b></p>
+  </section>
+
+  <!-- ══ 教訓分流 ══ -->
+  <section>
+    <div class="sec-hd">
+      <p class="eyebrow">04 — 踩到之後怎麼辦</p>
+      <h2>事故的第一句，不可以是「我下次會小心」</h2>
+      <p>那句話<b>不可證偽</b>，所以它擋不住第二次。要問的是<b>結構原因</b>：
+        為什麼這個系統讓人容易犯這個錯。然後由上往下分流，接不住才往下掉一層。</p>
+    </div>
+
+    <div class="triage">
+      <div class="tri">
+        <p class="k">接得住 · 第一順位</p>
+        <p class="q">指令樣式／檔案事件／時間</p>
+        <p class="d">變成一條 <b>hook</b>。由執行環境跑，你想忘也忘不掉，不觸發時零成本。</p>
+        <p class="f">必附反向案例</p>
+      </div>
+      <div class="tri">
+        <p class="k">接得住 · 第二順位</p>
+        <p class="q">「做完了也不會知道出錯」</p>
+        <p class="d">變成一支 <b>守衛</b>。它的 PASS 必須附覆蓋率數字 —— 沒有數字的 PASS 只是「沒去看」。</p>
+        <p class="f">必配一支故障演練</p>
+      </div>
+      <div class="tri">
+        <p class="k">接不住</p>
+        <p class="q">只能靠判斷的</p>
+        <p class="d">才留在 <b>規則正文</b>裡。壓縮成「判準句 ＋ 一行指標」，全文放別的地方。</p>
+        <p class="f">最貴，所以最後才考慮</p>
+      </div>
+      <div class="tri">
+        <p class="k">誠實記著</p>
+        <p class="q">沒有人接得住</p>
+        <p class="d">例如「需求本身就錯」。<b>照實寫「沒有人」</b>，不要硬塞一個接不住的守衛進去。</p>
+        <p class="f">假的答案＝下一次事故的形狀</p>
+      </div>
+    </div>
+
+    <p class="note"><b>誤報比漏報更危險。</b>誤報會讓人乾脆把守衛關掉，然後你連漏報都不會知道。
+      真實案例：一條規則的正則寫得太粗，<b>連續誤報六次</b> ——
+      它擋掉了偵測器自己的程式碼，也擋掉了正在解釋這條規則的文件。
+      ⇒ 判準：<b>偵測「值」，不要偵測「描述值的樣式」。</b></p>
+  </section>
+
+  <!-- ══ 上手 ══ -->
+  <section>
+    <div class="sec-hd">
+      <p class="eyebrow">05 — 怎麼開始</p>
+      <h2>不要照抄這整套</h2>
+      <p>它長成現在這樣，是因為那個專案踩了 17 次特定的坑。<b>你的坑不一樣</b>，
+        所以你的 hook 和守衛也應該不一樣。可以直接拿走的是三個結構：
+        三層記憶的分工、四層成本結構、教訓迴圈。</p>
+    </div>
+
+    <div class="rail">
+      <div class="step">
+        <div class="when">第 1 天 · 30 分鐘</div>
+        <div class="what">建<b>規則檔</b>（只填專案概觀／常用指令／慣例，<b>這時候不要寫規則</b> ——
+          你還不知道自己會踩什麼坑，現在寫的九成是猜的）、建<b>任務檔</b>、
+          裝<b>第一個 hook</b>（挑你這週已經犯過的那個錯）。</div>
+      </div>
+      <div class="step">
+        <div class="when">第 1 週</div>
+        <div class="what">讓循環開始轉：動手前用
+          <a href="prompts/03-plan-not-code.md">要計畫不要 code</a>、
+          踩坑後用 <a href="prompts/04-postmortem-to-guard.md">事故轉守衛</a>、
+          交付後用 <a href="prompts/05-delivery-registration.md">交付登記</a>。</div>
+      </div>
+      <div class="step">
+        <div class="when">第 2 週</div>
+        <div class="what">寫<b>第一支守衛</b>。挑一件「做完了也不會知道出錯」的事 ——
+          文件宣稱的數字 vs 現算、某規則的覆蓋率、一份索引有沒有說謊、兩份必須一致的東西。</div>
+      </div>
+      <div class="step">
+        <div class="when">第 3 週</div>
+        <div class="what">寫<b>第一支演練</b>，對守衛注入一次假故障。
+          <b>很有可能第一次就會發現它根本沒在驗</b> —— 那正是這一層存在的理由。記得加反向案例。</div>
+      </div>
+      <div class="step">
+        <div class="when">第 4 週</div>
+        <div class="what">第一次<b>瘦身</b>。逐段問：這是敘事嗎／進度嗎／操作步驟嗎／機器接得住嗎？
+          都不是才留下，而且壓縮成判準句。順手設一個行數上限，<b>並讓守衛檢查它</b> —— 否則它一定會長回去。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ 邊界 ══ -->
+  <section>
+    <div class="sec-hd">
+      <p class="eyebrow">06 — 誠實邊界</p>
+      <h2>這套系統做不到的事</h2>
+      <p>先講，比被發現好。</p>
+    </div>
+
+    <ul class="bounds">
+      <li><span class="mk">01</span><span>它守的是<b>安靜的錯誤</b>，守不住「需求本身就錯」。
+        那一層沒有任何機器接得住，單人專案也沒有第二個人 review。
+        這是真實的缺口，不是還沒做完的功能。</span></li>
+      <li><span class="mk">02</span><span>那個專案<b>沒有 unit test</b>，測試全部是端到端 ＋ 守衛 ＋ 演練。
+        取捨是刻意的（單人、前端無 build step、真正咬人的是環境差異不是純函式），
+        但<b>代價是回歸定位慢</b>：紅了要自己二分找是哪一層。</span></li>
+      <li><span class="mk">03</span><span>hook 的設定檔通常<b>不進版控</b>（多數 agent 的設定目錄被 gitignore 擋掉）
+        ⇒ 換機器要重接一次。所以<b>安裝動作本身要寫成版控裡的腳本</b>，
+        讓它是「再跑一次」而不是「重寫一遍」。</span></li>
+      <li><span class="mk">04</span><span>純文字任務檔在<b>多人團隊會立刻失效</b>（併發編輯、通知、看板視圖）。
+        它是「單人 ＋ AI」這個特定形狀的解，不是通用建議。
+        但三層記憶的分工與四層防線在團隊裡仍然成立。</span></li>
+    </ul>
+  </section>
+
+  <footer>
+    <p>這一頁是導覽，正文全在 <code>*.md</code> 裡 —— 從
+      <a href="README.md">README.md</a> 開始，或直接跳
+      <a href="07-adopt.md">07-adopt.md</a> 的「第 1 天」。</p>
+    <p>隨意取用、修改、商用，不需要署名。如果某一條規則救了你一次，那它就完成任務了。</p>
+  </footer>
+
+</div>
+</body>
+</html>
